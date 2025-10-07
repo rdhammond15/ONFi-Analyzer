@@ -26,7 +26,7 @@ protected:	// Functions
 	void AdvanceToReadOrWriteEnableEdge(void);
 	void AdvanceToReadEnableHighEdge(void);
 	void AdvanceToWriteEnableHighEdge(void);
-	void NANDFlashAnalyzer::SynchronizeAllChannels(U64 sample_number);
+	void SynchronizeAllChannels(U64 sample_number);
 	void GetByte(void);
 
 protected: //vars
