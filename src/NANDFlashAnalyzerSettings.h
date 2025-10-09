@@ -31,19 +31,23 @@ public:
 	Channel mWriteEnableChannel;
 	Channel mReadEnableChannel;
 	Channel mCLEChannel;
+	Channel mALEChannel;
+	Channel mCEChannel;
 
 protected:
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO0Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO1Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO2Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO3Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO4Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO5Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO6Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO7Interface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mWriteEnableInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mReadEnableInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mCLEInterface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO0Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO1Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO2Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO3Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO4Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO5Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO6Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mIO7Interface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mWriteEnableInterface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mReadEnableInterface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >	mCLEInterface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >  mALEInterface;
+	std::unique_ptr< AnalyzerSettingInterfaceChannel >  mCEInterface;
 };
 
 #endif //NANDFLASH_ANALYZER_SETTINGS

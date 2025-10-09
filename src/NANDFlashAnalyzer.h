@@ -5,6 +5,15 @@
 #include "NANDFlashAnalyzerResults.h"
 #include "NANDFlashSimulationDataGenerator.h"
 
+// Frame Types
+enum OnfiFrameType {
+	Command,
+	Address,
+	Write,
+	Read,
+	Undefined
+};
+
 class NANDFlashAnalyzerSettings;
 class ANALYZER_EXPORT NANDFlashAnalyzer : public Analyzer2
 {
@@ -32,20 +41,15 @@ protected:	// Functions
 protected: //vars
 #pragma warning( push )
 #pragma warning( disable : 4251 ) //warning C4251: 'SerialAnalyzer::<...>' : class <...> needs to have dll-interface to be used by clients of class
-	std::auto_ptr< NANDFlashAnalyzerSettings > mSettings;
-	std::auto_ptr< NANDFlashAnalyzerResults > mResults;
+	std::unique_ptr< NANDFlashAnalyzerSettings > mSettings;
+	std::unique_ptr< NANDFlashAnalyzerResults > mResults;
 
 	AnalyzerChannelData *mCLE;
+	AnalyzerChannelData *mALE;
+	AnalyzerChannelData *mCE;
 	AnalyzerChannelData *mReadEnable;
 	AnalyzerChannelData *mWriteEnable;
-	AnalyzerChannelData *mIO0;
-	AnalyzerChannelData *mIO1;
-	AnalyzerChannelData *mIO2;
-	AnalyzerChannelData *mIO3;
-	AnalyzerChannelData *mIO4;
-	AnalyzerChannelData *mIO5;
-	AnalyzerChannelData *mIO6;
-	AnalyzerChannelData *mIO7;
+	AnalyzerChannelData *mData[8];
 
 	NANDFlashSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;

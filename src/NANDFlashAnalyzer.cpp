@@ -6,21 +6,16 @@
 
 NANDFlashAnalyzer::NANDFlashAnalyzer()
 	: Analyzer2(),
-	mLastCommand(0x00),
-	mDataIsOutput(false),
-	mSettings(new NANDFlashAnalyzerSettings()),
-	mSimulationInitilized(false),
-	mCLE(NULL),
-	mReadEnable(NULL),
-	mWriteEnable(NULL),
-	mIO0(NULL),
-	mIO1(NULL),
-	mIO2(NULL),
-	mIO3(NULL),
-	mIO4(NULL),
-	mIO5(NULL),
-	mIO6(NULL),
-	mIO7(NULL)
+	  mLastCommand(0x00),
+	  mDataIsOutput(false),
+	  mSettings(new NANDFlashAnalyzerSettings()),
+	  mSimulationInitilized(false),
+	  mCLE(NULL),
+	  mALE(NULL),
+	  mCE(NULL),
+	  mReadEnable(NULL),
+	  mWriteEnable(NULL),
+	  mData()
 {
 	SetAnalyzerSettings(mSettings.get());
 }
@@ -43,42 +38,6 @@ void NANDFlashAnalyzer::SetupResults()
 	{
 		mResults->AddChannelBubblesWillAppearOn(mSettings->mWriteEnableChannel);
 	}
-	if (mSettings->mIO0Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO0Channel);
-	}
-	if (mSettings->mIO1Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO1Channel);
-	}
-	if (mSettings->mIO2Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO2Channel);
-	}
-	if (mSettings->mIO3Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO3Channel);
-	}
-	if (mSettings->mIO4Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO4Channel);
-	}
-	if (mSettings->mIO5Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO5Channel);
-	}
-	if (mSettings->mIO6Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO6Channel);
-	}
-	if (mSettings->mIO7Channel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO7Channel);
-	}
-	if (mSettings->mCLEChannel != UNDEFINED_CHANNEL)
-	{
-		mResults->AddChannelBubblesWillAppearOn(mSettings->mCLEChannel);
-	}
 }
 
 void NANDFlashAnalyzer::WorkerThread()
@@ -87,7 +46,7 @@ void NANDFlashAnalyzer::WorkerThread()
 
 	AdvanceToReadOrWriteEnableEdge();
 
-	for( ; ; )
+	for (;;)
 	{
 		/* 1. Check state: Reading, Writing, or UNKNOWN */
 
@@ -99,16 +58,18 @@ void NANDFlashAnalyzer::WorkerThread()
 void NANDFlashAnalyzer::Setup(void)
 {
 	mCLE = GetAnalyzerChannelData(mSettings->mCLEChannel);
+	mALE = GetAnalyzerChannelData(mSettings->mALEChannel);
+	mCE = GetAnalyzerChannelData(mSettings->mCEChannel);
 	mReadEnable = GetAnalyzerChannelData(mSettings->mReadEnableChannel);
 	mWriteEnable = GetAnalyzerChannelData(mSettings->mWriteEnableChannel);
-	mIO0 = GetAnalyzerChannelData(mSettings->mIO0Channel);
-	mIO1 = GetAnalyzerChannelData(mSettings->mIO1Channel);
-	mIO2 = GetAnalyzerChannelData(mSettings->mIO2Channel);
-	mIO3 = GetAnalyzerChannelData(mSettings->mIO3Channel);
-	mIO4 = GetAnalyzerChannelData(mSettings->mIO4Channel);
-	mIO5 = GetAnalyzerChannelData(mSettings->mIO5Channel);
-	mIO6 = GetAnalyzerChannelData(mSettings->mIO6Channel);
-	mIO7 = GetAnalyzerChannelData(mSettings->mIO7Channel);
+	mData[0] = GetAnalyzerChannelData(mSettings->mIO0Channel);
+	mData[1] = GetAnalyzerChannelData(mSettings->mIO1Channel);
+	mData[2] = GetAnalyzerChannelData(mSettings->mIO2Channel);
+	mData[3] = GetAnalyzerChannelData(mSettings->mIO3Channel);
+	mData[4] = GetAnalyzerChannelData(mSettings->mIO4Channel);
+	mData[5] = GetAnalyzerChannelData(mSettings->mIO5Channel);
+	mData[6] = GetAnalyzerChannelData(mSettings->mIO6Channel);
+	mData[7] = GetAnalyzerChannelData(mSettings->mIO7Channel);
 }
 
 void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
@@ -122,12 +83,12 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	{
 		current_sample = mReadEnable->GetSampleNumber();
 		next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
-		/* Only 1ns between reads */
-		if (1 == (next_read_enable_sample - current_sample))
-		{
-			AdvanceToReadEnableHighEdge();	// Skip past the nano-second glitch. NOTE: We can't use Logic's glitch filter because some of these glitches are back-to-back and the filter would get rid of the entire read
-			next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
-		}
+		// /* Only 1ns between reads */
+		// if (1 == (next_read_enable_sample - current_sample))
+		// {
+		// 	AdvanceToReadEnableHighEdge(); // Skip past the nano-second glitch. NOTE: We can't use Logic's glitch filter because some of these glitches are back-to-back and the filter would get rid of the entire read
+		// 	next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
+		// }
 	}
 
 	if (mWriteEnable != NULL)
@@ -138,7 +99,7 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	/* Samples are time based so lowest value is next sample */
 	if (next_read_enable_sample <= next_write_enable_sample)
 	{
-		AdvanceToReadEnableHighEdge();	// Reads happen on the falling edge of the ReadEnable line
+		AdvanceToReadEnableHighEdge(); // Reads happen on the falling edge of the ReadEnable line
 
 		/* NOTE: According to the datasheet, there is a read access time, tREA, ranging
 		 * between 0 - 16ns. We'll try reading on the rising edge of the signal, which is usually
@@ -150,7 +111,7 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	}
 	else
 	{
-		AdvanceToWriteEnableHighEdge();	// Writes happen on the rising edge of the WriteEnable line
+		AdvanceToWriteEnableHighEdge(); // Writes happen on the rising edge of the WriteEnable line
 		next_sample = mWriteEnable->GetSampleNumber();
 		mDataIsOutput = false;
 	}
@@ -163,15 +124,22 @@ void NANDFlashAnalyzer::AdvanceToReadEnableHighEdge(void)
 	if (mReadEnable != NULL)
 	{
 		mReadEnable->AdvanceToNextEdge();
-		
+
 		/* If we advance to a high edge, advance again to the next edge, which will be low */
 		if (mReadEnable->GetBitState() != BIT_HIGH)
 		{
 			mReadEnable->AdvanceToNextEdge();
 		}
 
-		mResults->AddMarker(mReadEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mReadEnableChannel);
-		mResults->CommitResults();
+		// check for valid read/write where both are not low
+		U64 current_sample = mReadEnable->GetSampleNumber();
+		mWriteEnable->AdvanceToAbsPosition(current_sample);
+
+		if (mWriteEnable->GetBitState() == BIT_HIGH)
+		{
+			mResults->AddMarker(mReadEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mReadEnableChannel);
+			mResults->CommitResults();
+		}
 	}
 }
 
@@ -187,83 +155,125 @@ void NANDFlashAnalyzer::AdvanceToWriteEnableHighEdge(void)
 			mWriteEnable->AdvanceToNextEdge();
 		}
 
-		mResults->AddMarker(mWriteEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mWriteEnableChannel);
-		mResults->AddMarker(mWriteEnable->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mCLEChannel);
-		mResults->CommitResults();
+		// check for valid read/write where both are not low
+		U64 current_sample = mWriteEnable->GetSampleNumber();
+		mReadEnable->AdvanceToAbsPosition(current_sample);
+
+		if (mReadEnable->GetBitState() == BIT_HIGH)
+		{
+			mResults->AddMarker(mWriteEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mWriteEnableChannel);
+			mResults->CommitResults();
+		}
 	}
 }
 
 void NANDFlashAnalyzer::SynchronizeAllChannels(U64 sample_number)
 {
-	mIO0->AdvanceToAbsPosition(sample_number);
-	mIO1->AdvanceToAbsPosition(sample_number);
-	mIO2->AdvanceToAbsPosition(sample_number);
-	mIO3->AdvanceToAbsPosition(sample_number);
-	mIO4->AdvanceToAbsPosition(sample_number);
-	mIO5->AdvanceToAbsPosition(sample_number);
-	mIO6->AdvanceToAbsPosition(sample_number);
-	mIO7->AdvanceToAbsPosition(sample_number);
+	mCLE->AdvanceToAbsPosition(sample_number);
+	mALE->AdvanceToAbsPosition(sample_number);
+	mCE->AdvanceToAbsPosition(sample_number);
 	mReadEnable->AdvanceToAbsPosition(sample_number);
 	mWriteEnable->AdvanceToAbsPosition(sample_number);
-	mCLE->AdvanceToAbsPosition(sample_number);
+
+	mData[0]->AdvanceToAbsPosition(sample_number);
+	mData[1]->AdvanceToAbsPosition(sample_number);
+	mData[2]->AdvanceToAbsPosition(sample_number);
+	mData[3]->AdvanceToAbsPosition(sample_number);
+	mData[4]->AdvanceToAbsPosition(sample_number);
+	mData[5]->AdvanceToAbsPosition(sample_number);
+	mData[6]->AdvanceToAbsPosition(sample_number);
+	mData[7]->AdvanceToAbsPosition(sample_number);
 }
 
 void NANDFlashAnalyzer::GetByte(void)
 {
 	U8 data = 0;
 	bool save_data = false;
-	U64 starting_sample = mIO0->GetSampleNumber();	// NOTE: It doesn't matter which channel sample we get here; all channels are sync'd in "AdvanceToReadOrWriteEnableEdge"
 
 	/* Get the data */
-	data = mIO0->GetBitState();
-	data |= mIO1->GetBitState() << 1;
-	data |= mIO2->GetBitState() << 2;
-	data |= mIO3->GetBitState() << 3;
-	data |= mIO4->GetBitState() << 4;
-	data |= mIO5->GetBitState() << 5;
-	data |= mIO6->GetBitState() << 6;
-	data |= mIO7->GetBitState() << 7;
-
-	/*TODO: Implement logic to determine if the next sample we want is for reading data or writing a command/address */
-
-	/* If ReadEnable line is low we're writing data */
-	if (mDataIsOutput == true && mLastCommand != 0x70) // READ PAGE
+	for (U32 i = 0; i < 8; i++)
 	{
-		save_data = true;
+		if (mData[i]->GetBitState() == BIT_HIGH)
+		{
+			data |= (1 << i);
+		}
 	}
-	else if (mDataIsOutput == false && mCLE->GetBitState() == BIT_HIGH)	// command
-	{
-		mLastCommand = data;
-	}
-
 
 	AdvanceToReadOrWriteEnableEdge();
 
+	// Ignore anything where CE_N is high
+	if (mCE->GetBitState() == BIT_HIGH)
+		return;
 
-	if (save_data == true)
+	Frame frame;
+	frame.mData1 = data;
+
+	if (mDataIsOutput)
 	{
-		/* Draw a dot on each IO line where the sample was taken */
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO0Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO1Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO2Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO3Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO4Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO5Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO6Channel);
-		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO7Channel);
+		// Output
 
-		/* Save the data */
-		Frame frame;
-		frame.mData1 = data;
-		frame.mFlags = 0;
+		// Check for undefined behavior first (both low)
+		if (mWriteEnable->GetBitState() == BIT_LOW)
+		{
+			frame.mType = Undefined;
+			mResults->AddFrame(frame);
+			mResults->CommitResults();
+			return;
+		}
+
+		U64 starting_sample = mReadEnable->GetSampleNumber();
 		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = mIO0->GetSampleNumber();
-
-		mResults->AddFrame(frame);
-		mResults->CommitResults();
-
-		ReportProgress(frame.mEndingSampleInclusive);
+		frame.mEndingSampleInclusive = starting_sample + 1; // falling edge so place the bubble after
+		frame.mType = Read;
+		frame.mFlags = 0;
 	}
+	else if (!mDataIsOutput)
+	{
+		// Input
+		U64 starting_sample = mWriteEnable->GetSampleNumber();
+		frame.mStartingSampleInclusive = starting_sample - 1;
+		frame.mEndingSampleInclusive = starting_sample; // rising edge so place the bubble before
+		frame.mFlags = 0;
+
+		// Check for undefined behavior first (both low)
+		if (mReadEnable->GetBitState() == BIT_LOW)
+		{
+			frame.mType = Undefined;
+			mResults->AddFrame(frame);
+			mResults->CommitResults();
+			return;
+		}
+
+		if (mCLE->GetBitState() == BIT_HIGH && mALE->GetBitState() == BIT_LOW)
+		{
+			// Command operation
+			frame.mType = Command;
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mCLEChannel);
+			mLastCommand = data;
+		}
+		else if (mALE->GetBitState() == BIT_HIGH && mCLE->GetBitState() == BIT_LOW)
+		{
+			// Address operation
+			frame.mType = Address;
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mALEChannel);
+		}
+		else if (mALE->GetBitState() == BIT_LOW && mCLE->GetBitState() == BIT_LOW)
+		{
+			// Write operation
+			frame.mType = Write;
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO0Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO1Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO2Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO3Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO4Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO5Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO6Channel);
+			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO7Channel);
+		}
+	}
+
+	mResults->AddFrame(frame);
+	mResults->CommitResults();
 }
 
 bool NANDFlashAnalyzer::NeedsRerun()
@@ -271,7 +281,7 @@ bool NANDFlashAnalyzer::NeedsRerun()
 	return false;
 }
 
-U32 NANDFlashAnalyzer::GenerateSimulationData( U64 minimum_sample_index, U32 device_sample_rate, SimulationChannelDescriptor** simulation_channels )
+U32 NANDFlashAnalyzer::GenerateSimulationData(U64 minimum_sample_index, U32 device_sample_rate, SimulationChannelDescriptor **simulation_channels)
 {
 	if (mSimulationInitilized == false)
 	{
@@ -284,25 +294,25 @@ U32 NANDFlashAnalyzer::GenerateSimulationData( U64 minimum_sample_index, U32 dev
 
 U32 NANDFlashAnalyzer::GetMinimumSampleRateHz()
 {
-	return 10000;	// Unsure of the minimum; depends on the implementation; return the lowest rate.
+	return 10000; // Unsure of the minimum; depends on the implementation; return the lowest rate.
 }
 
-const char* NANDFlashAnalyzer::GetAnalyzerName() const
+const char *NANDFlashAnalyzer::GetAnalyzerName() const
 {
 	return "NAND Flash";
 }
 
-const char* GetAnalyzerName()
+const char *GetAnalyzerName()
 {
 	return "NAND Flash";
 }
 
-Analyzer* CreateAnalyzer()
+Analyzer *CreateAnalyzer()
 {
 	return new NANDFlashAnalyzer();
 }
 
-void DestroyAnalyzer( Analyzer* analyzer )
+void DestroyAnalyzer(Analyzer *analyzer)
 {
 	delete analyzer;
 }
