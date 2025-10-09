@@ -190,6 +190,8 @@ void NANDFlashAnalyzer::GetByte(void)
 	U8 data = 0;
 	bool save_data = false;
 
+	AdvanceToReadOrWriteEnableEdge();
+
 	/* Get the data */
 	for (U32 i = 0; i < 8; i++)
 	{
@@ -198,8 +200,6 @@ void NANDFlashAnalyzer::GetByte(void)
 			data |= (1 << i);
 		}
 	}
-
-	AdvanceToReadOrWriteEnableEdge();
 
 	// Ignore anything where CE_N is high
 	if (mCE->GetBitState() == BIT_HIGH)
