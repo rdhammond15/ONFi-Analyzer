@@ -12,7 +12,8 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	mIO6Channel(UNDEFINED_CHANNEL),
 	mIO7Channel(UNDEFINED_CHANNEL),
 	mWriteEnableChannel(UNDEFINED_CHANNEL),
-	mReadEnableChannel(UNDEFINED_CHANNEL)
+	mReadEnableChannel(UNDEFINED_CHANNEL),
+	mCLEChannel(UNDEFINED_CHANNEL)
 {
 	mIO0Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO0Interface->SetTitleAndTooltip("IO 0",  "I/O Channel 0");
@@ -64,6 +65,11 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	mReadEnableInterface->SetChannel(mReadEnableChannel);
 	mReadEnableInterface->SetSelectionOfNoneIsAllowed(false);
 
+	mCLEInterface.reset(new AnalyzerSettingInterfaceChannel());
+	mCLEInterface->SetTitleAndTooltip("CLE", "Command Latch Enable");
+	mCLEInterface->SetChannel(mCLEChannel);
+	mCLEInterface->SetSelectionOfNoneIsAllowed(false);
+
 	AddInterface(mIO0Interface.get());
 	AddInterface(mIO1Interface.get());
 	AddInterface(mIO2Interface.get());
@@ -74,6 +80,7 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	AddInterface(mIO7Interface.get());
 	AddInterface(mWriteEnableInterface.get());
 	AddInterface(mReadEnableInterface.get());
+	AddInterface(mCLEInterface.get());
 
 	AddExportOption( 0, "Export as text/csv file" );
 	AddExportExtension( 0, "text", "txt" );
@@ -90,6 +97,7 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	AddChannel(mIO7Channel, "I/O 7", false);
 	AddChannel(mWriteEnableChannel, "WriteEnable", false);
 	AddChannel(mReadEnableChannel, "ReadEnable", false);
+	AddChannel(mCLEChannel, "CLE", false);
 }
 
 NANDFlashAnalyzerSettings::~NANDFlashAnalyzerSettings()
@@ -109,6 +117,7 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 	Channel io7 = mIO7Interface->GetChannel();
 	Channel write_enable = mWriteEnableInterface->GetChannel();
 	Channel read_enable = mReadEnableInterface->GetChannel();
+	Channel cle = mCLEInterface->GetChannel();
 
 	std::vector<Channel> channels;
 	channels.push_back(io0);
@@ -121,6 +130,7 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 	channels.push_back(io7);
 	channels.push_back(write_enable);
 	channels.push_back(read_enable);
+	channels.push_back(cle);
 
 	if (AnalyzerHelpers::DoChannelsOverlap(&channels[0], channels.size()) == true)
 	{
@@ -138,9 +148,10 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 		|| (io6 == UNDEFINED_CHANNEL)
 		|| (io7 == UNDEFINED_CHANNEL)
 		|| (write_enable == UNDEFINED_CHANNEL)
-		|| (read_enable == UNDEFINED_CHANNEL))
+		|| (read_enable == UNDEFINED_CHANNEL)
+		|| (cle == UNDEFINED_CHANNEL))
 	{
-		SetErrorText("Please select an input for all I/O lines, Read Enable, and Write Enable.");
+		SetErrorText("Please select an input for all I/O lines, Read Enable, Write Enable, and CLE.");
 		return false;
 	}
 
@@ -154,6 +165,7 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 	mIO7Channel = mIO7Interface->GetChannel();
 	mWriteEnableChannel = mWriteEnableInterface->GetChannel();
 	mReadEnableChannel = mReadEnableInterface->GetChannel();
+	mCLEChannel = mCLEInterface->GetChannel();
 
 	ClearChannels();
 	AddChannel(mIO0Channel, "I/O 0", mIO0Channel != UNDEFINED_CHANNEL);
@@ -166,6 +178,7 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 	AddChannel(mIO7Channel, "I/O 7", mIO7Channel != UNDEFINED_CHANNEL);
 	AddChannel(mWriteEnableChannel, "WriteEnable", mWriteEnableChannel != UNDEFINED_CHANNEL);
 	AddChannel(mReadEnableChannel, "ReadEnable", mReadEnableChannel != UNDEFINED_CHANNEL);
+	AddChannel(mCLEChannel, "CLE", mCLEChannel != UNDEFINED_CHANNEL);
 
 	return true;
 }
@@ -182,6 +195,7 @@ void NANDFlashAnalyzerSettings::UpdateInterfacesFromSettings()
 	mIO7Interface->SetChannel(mIO7Channel);
 	mWriteEnableInterface->SetChannel(mWriteEnableChannel);
 	mReadEnableInterface->SetChannel(mReadEnableChannel);
+	mCLEInterface->SetChannel(mCLEChannel);
 }
 
 void NANDFlashAnalyzerSettings::LoadSettings( const char* settings )
@@ -198,6 +212,7 @@ void NANDFlashAnalyzerSettings::LoadSettings( const char* settings )
 	text_archive >> mIO7Channel;
 	text_archive >> mWriteEnableChannel;
 	text_archive >> mReadEnableChannel;
+	text_archive >> mCLEChannel;
 
 	ClearChannels();
 	AddChannel(mIO0Channel, "I/O 0", mIO0Channel != UNDEFINED_CHANNEL);
@@ -210,6 +225,7 @@ void NANDFlashAnalyzerSettings::LoadSettings( const char* settings )
 	AddChannel(mIO7Channel, "I/O 7", mIO7Channel != UNDEFINED_CHANNEL);
 	AddChannel(mWriteEnableChannel, "WriteEnable", mWriteEnableChannel != UNDEFINED_CHANNEL);
 	AddChannel(mReadEnableChannel, "ReadEnable", mReadEnableChannel != UNDEFINED_CHANNEL);
+	AddChannel(mCLEChannel, "CLE", mCLEChannel != UNDEFINED_CHANNEL);
 
 	UpdateInterfacesFromSettings();
 }
@@ -227,6 +243,7 @@ const char* NANDFlashAnalyzerSettings::SaveSettings()
 	text_archive << mIO7Channel;
 	text_archive << mWriteEnableChannel;
 	text_archive << mReadEnableChannel;
+	text_archive << mCLEChannel;
 
 	return SetReturnString(text_archive.GetString());
 }

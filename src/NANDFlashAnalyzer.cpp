@@ -2,12 +2,15 @@
 #include "NANDFlashAnalyzerSettings.h"
 #include <AnalyzerChannelData.h>
 
+#include <iostream>
+
 NANDFlashAnalyzer::NANDFlashAnalyzer()
 	: Analyzer2(),
 	mLastCommand(0x00),
 	mDataIsOutput(false),
 	mSettings(new NANDFlashAnalyzerSettings()),
 	mSimulationInitilized(false),
+	mCLE(NULL),
 	mReadEnable(NULL),
 	mWriteEnable(NULL),
 	mIO0(NULL),
@@ -72,6 +75,10 @@ void NANDFlashAnalyzer::SetupResults()
 	{
 		mResults->AddChannelBubblesWillAppearOn(mSettings->mIO7Channel);
 	}
+	if (mSettings->mCLEChannel != UNDEFINED_CHANNEL)
+	{
+		mResults->AddChannelBubblesWillAppearOn(mSettings->mCLEChannel);
+	}
 }
 
 void NANDFlashAnalyzer::WorkerThread()
@@ -83,7 +90,7 @@ void NANDFlashAnalyzer::WorkerThread()
 	for( ; ; )
 	{
 		/* 1. Check state: Reading, Writing, or UNKNOWN */
-		
+
 		/* 2. Get the current data (byte) */
 		GetByte();
 	}
@@ -91,6 +98,7 @@ void NANDFlashAnalyzer::WorkerThread()
 
 void NANDFlashAnalyzer::Setup(void)
 {
+	mCLE = GetAnalyzerChannelData(mSettings->mCLEChannel);
 	mReadEnable = GetAnalyzerChannelData(mSettings->mReadEnableChannel);
 	mWriteEnable = GetAnalyzerChannelData(mSettings->mWriteEnableChannel);
 	mIO0 = GetAnalyzerChannelData(mSettings->mIO0Channel);
@@ -180,6 +188,7 @@ void NANDFlashAnalyzer::AdvanceToWriteEnableHighEdge(void)
 		}
 
 		mResults->AddMarker(mWriteEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mWriteEnableChannel);
+		mResults->AddMarker(mWriteEnable->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mCLEChannel);
 		mResults->CommitResults();
 	}
 }
@@ -196,6 +205,7 @@ void NANDFlashAnalyzer::SynchronizeAllChannels(U64 sample_number)
 	mIO7->AdvanceToAbsPosition(sample_number);
 	mReadEnable->AdvanceToAbsPosition(sample_number);
 	mWriteEnable->AdvanceToAbsPosition(sample_number);
+	mCLE->AdvanceToAbsPosition(sample_number);
 }
 
 void NANDFlashAnalyzer::GetByte(void)
@@ -217,16 +227,11 @@ void NANDFlashAnalyzer::GetByte(void)
 	/*TODO: Implement logic to determine if the next sample we want is for reading data or writing a command/address */
 
 	/* If ReadEnable line is low we're writing data */
-	if (mDataIsOutput == true
-		&& mWriteEnable->GetBitState() == BIT_HIGH
-		&& (mLastCommand == 0x30		// READ PAGE
-			|| mLastCommand == 0x31		// READ PAGE CACHE RANDOM
-			|| mLastCommand == 0x3F		// READ PAGE CACHE LAST
-			|| mLastCommand == 0xE0))	// RANDOM DATA READ
+	if (mDataIsOutput == true && mLastCommand != 0x70) // READ PAGE
 	{
 		save_data = true;
 	}
-	else if (mDataIsOutput == false)	// Write command
+	else if (mDataIsOutput == false && mCLE->GetBitState() == BIT_HIGH)	// command
 	{
 		mLastCommand = data;
 	}
@@ -246,7 +251,7 @@ void NANDFlashAnalyzer::GetByte(void)
 		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO5Channel);
 		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO6Channel);
 		mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO7Channel);
-		
+
 		/* Save the data */
 		Frame frame;
 		frame.mData1 = data;

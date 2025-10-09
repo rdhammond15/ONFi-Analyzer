@@ -35,6 +35,7 @@ protected: //vars
 	std::auto_ptr< NANDFlashAnalyzerSettings > mSettings;
 	std::auto_ptr< NANDFlashAnalyzerResults > mResults;
 
+	AnalyzerChannelData *mCLE;
 	AnalyzerChannelData *mReadEnable;
 	AnalyzerChannelData *mWriteEnable;
 	AnalyzerChannelData *mIO0;

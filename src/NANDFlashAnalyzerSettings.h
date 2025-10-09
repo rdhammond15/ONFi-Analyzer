@@ -30,6 +30,7 @@ public:
 	Channel mIO7Channel;
 	Channel mWriteEnableChannel;
 	Channel mReadEnableChannel;
+	Channel mCLEChannel;
 
 protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO0Interface;
@@ -42,6 +43,7 @@ protected:
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mIO7Interface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mWriteEnableInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mReadEnableInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mCLEInterface;
 };
 
 #endif //NANDFLASH_ANALYZER_SETTINGS
