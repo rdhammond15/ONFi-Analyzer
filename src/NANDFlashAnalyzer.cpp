@@ -1,8 +1,8 @@
 #include "NANDFlashAnalyzer.h"
 #include "NANDFlashAnalyzerSettings.h"
 #include <AnalyzerChannelData.h>
+#include <unordered_map>
 
-#include <iostream>
 
 NANDFlashAnalyzer::NANDFlashAnalyzer()
 	: Analyzer2(),
@@ -18,6 +18,7 @@ NANDFlashAnalyzer::NANDFlashAnalyzer()
 	  mData()
 {
 	SetAnalyzerSettings(mSettings.get());
+    UseFrameV2();
 }
 
 NANDFlashAnalyzer::~NANDFlashAnalyzer()
@@ -188,9 +189,13 @@ void NANDFlashAnalyzer::SynchronizeAllChannels(U64 sample_number)
 void NANDFlashAnalyzer::GetByte(void)
 {
 	U8 data = 0;
-	bool save_data = false;
 
 	AdvanceToReadOrWriteEnableEdge();
+
+	// Ignore anything where CE_N is high
+	if (mCE->GetBitState() == BIT_HIGH) {
+        return;
+    }
 
 	/* Get the data */
 	for (U32 i = 0; i < 8; i++)
@@ -201,12 +206,15 @@ void NANDFlashAnalyzer::GetByte(void)
 		}
 	}
 
-	// Ignore anything where CE_N is high
-	if (mCE->GetBitState() == BIT_HIGH)
-		return;
-
 	Frame frame;
+    FrameV2 frame_v2;
 	frame.mData1 = data;
+    std::unordered_map<int, const char*> type_to_str = {
+        {Read, "Read"},
+        {Write, "Write"},
+        {Command, "Command"},
+        {Address, "Address"},
+    };
 
 	if (mDataIsOutput)
 	{
@@ -272,6 +280,9 @@ void NANDFlashAnalyzer::GetByte(void)
 		}
 	}
 
+    frame_v2.AddInteger("Data", data);
+    mResults->AddFrameV2(frame_v2, type_to_str[frame.mType], frame.mStartingSampleInclusive,
+                         frame.mEndingSampleInclusive);
 	mResults->AddFrame(frame);
 	mResults->CommitResults();
 }
