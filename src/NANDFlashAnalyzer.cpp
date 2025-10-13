@@ -80,25 +80,29 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	U64 next_write_enable_sample = 0;
 	U64 next_sample = 0;
 
+    /* getting the next edge seems to block if there isn't another edge available */
+    bool more_read_transitions = mReadEnable->DoMoreTransitionsExistInCurrentData();
+    bool more_write_transitions = mWriteEnable->DoMoreTransitionsExistInCurrentData();
+
+    /* we should allow the block to happen if there is currently no more data available */
+    bool need_more_data = !more_read_transitions && !more_write_transitions;
 	if (mReadEnable != NULL)
 	{
-		current_sample = mReadEnable->GetSampleNumber();
-		next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
-		// /* Only 1ns between reads */
-		// if (1 == (next_read_enable_sample - current_sample))
-		// {
-		// 	AdvanceToReadEnableHighEdge(); // Skip past the nano-second glitch. NOTE: We can't use Logic's glitch filter because some of these glitches are back-to-back and the filter would get rid of the entire read
-		// 	next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
-		// }
+        if (more_read_transitions || need_more_data) {
+		    next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
+        }
 	}
 
 	if (mWriteEnable != NULL)
 	{
-		next_write_enable_sample = mWriteEnable->GetSampleOfNextEdge();
+        /* getting the next edge seems to block if there isn't another edge available */
+        if (more_write_transitions) {
+		    next_write_enable_sample = mWriteEnable->GetSampleOfNextEdge();
+        }
 	}
 
-	/* Samples are time based so lowest value is next sample */
-	if (next_read_enable_sample <= next_write_enable_sample)
+	/* Samples are time based so lowest value is next sample and make sure there is another sample available */
+	if (next_read_enable_sample <= next_write_enable_sample && more_read_transitions)
 	{
 		AdvanceToReadEnableHighEdge(); // Reads happen on the falling edge of the ReadEnable line
 
@@ -110,7 +114,7 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 
 		mDataIsOutput = true;
 	}
-	else
+	else if(more_write_transitions)
 	{
 		AdvanceToWriteEnableHighEdge(); // Writes happen on the rising edge of the WriteEnable line
 		next_sample = mWriteEnable->GetSampleNumber();
