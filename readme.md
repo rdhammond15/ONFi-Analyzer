@@ -11,13 +11,17 @@ Because the logical analyzer is capturing all hardware level communications, you
 Below are some screenshots of the features. The analyzer supports decoding commands, addresses, and I/O data. There is
 also a data extractor plugin that exports each read transaction and marks the read transaction in Logic.
 
+**Issuing a command with address**
 ![Read Command With Addresses](./images/read_cmd_with_addr.png)
 
+**Issuing a command with address**
 ![Read Data](./images/read_data.png)
 
-[!Data Table](./images/data_table.png)
+**Issuing a command with address**
+![Data Table](./images/data_table.png)
 
-[!Read Transaction](./images/read_transaction.png)
+**Issuing a command with address**
+![Read Transaction](./images/read_transaction.png)
 
 ## Building
 Refer to Saleae's [building guide](https://github.com/saleae/SampleAnalyzer/tree/master?tab=readme-ov-file#building-your-analyzer).
