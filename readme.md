@@ -12,15 +12,19 @@ Below are some screenshots of the features. The analyzer supports decoding comma
 also a data extractor plugin that exports each read transaction and marks the read transaction in Logic.
 
 **Issuing a command with address**
+
 ![Read Command With Addresses](./images/read_cmd_with_addr.png)
 
-**Issuing a command with address**
+**Reading data**
+
 ![Read Data](./images/read_data.png)
 
-**Issuing a command with address**
+**Printing frames**
+
 ![Data Table](./images/data_table.png)
 
-**Issuing a command with address**
+**Read transaction**
+
 ![Read Transaction](./images/read_transaction.png)
 
 ## Building
