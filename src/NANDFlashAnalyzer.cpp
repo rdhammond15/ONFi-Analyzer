@@ -102,7 +102,8 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	}
 
 	/* Samples are time based so lowest value is next sample and make sure there is another sample available */
-	if (next_read_enable_sample <= next_write_enable_sample && more_read_transitions)
+	if ((next_read_enable_sample <= next_write_enable_sample && more_read_transitions) ||
+        (more_read_transitions && !more_write_transitions))
 	{
 		AdvanceToReadEnableHighEdge(); // Reads happen on the falling edge of the ReadEnable line
 
