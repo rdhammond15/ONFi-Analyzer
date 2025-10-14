@@ -29,6 +29,7 @@ class Hla(HighLevelAnalyzer):
         self.tracking_read = False
         self.transaction_num = 0
         self.read_data = b''
+        self.previous_frame = None
 
         if not self.export_file:
             raise(ValueError("Export File setting is required"))
@@ -48,7 +49,7 @@ class Hla(HighLevelAnalyzer):
             # We were tracking a command, but the read is over, so reset
             # We  also have to check for Read Status as that can happen after a read command, so the data won't be flash
             # data
-            if self.previous_frame.type == "Read" and self.tracking_read:
+            if self.previous_frame and self.previous_frame.type == "Read" and self.tracking_read:
                 self.tracking_read = False
                 fresult = AnalyzerFrame('read_transaction', self.read_transaction_start, self.previous_frame.end_time)
 
