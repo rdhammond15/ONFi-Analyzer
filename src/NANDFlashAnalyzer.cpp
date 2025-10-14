@@ -90,6 +90,15 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 
     /* we should allow the block to happen if there is currently no more data available */
     bool need_more_data = !mMoreReadTransitions && !mMoreWriteTransitions;
+
+    /* lets mark this packet as then end as there is no more data right now */
+    if (need_more_data) {
+        FrameV2 frame_v2;
+        mResults->AddFrameV2(frame_v2, "End", mReadEnable->GetSampleNumber(),
+                             mReadEnable->GetSampleNumber() + 1);
+	    mResults->CommitResults();
+    }
+
 	if (mReadEnable != NULL)
 	{
         if (mMoreReadTransitions || need_more_data) {

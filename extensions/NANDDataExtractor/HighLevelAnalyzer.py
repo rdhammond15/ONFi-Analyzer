@@ -40,12 +40,12 @@ class Hla(HighLevelAnalyzer):
 
         The type and data values in `frame` will depend on the input analyzer.
         '''
-        data = frame.data['Data']
+        data = frame.data.get('Data', None)
 
         fresult = None
 
         # Track Read commands. Some command cycles may be proprietary, but 0x00 seems to be constant
-        if frame.type == "Command":
+        if frame.type == "Command" or frame.type == "End":
             # We were tracking a command, but the read is over, so reset
             # We  also have to check for Read Status as that can happen after a read command, so the data won't be flash
             # data
@@ -62,6 +62,7 @@ class Hla(HighLevelAnalyzer):
             if data == READ_STATUS:
                 self.tracking_read = False
             elif data == READ:
+                print("Tracking Read")
                 self.tracking_read = True
                 self.read_transaction_start = frame.start_time
 
