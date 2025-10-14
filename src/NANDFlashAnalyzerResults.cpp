@@ -68,8 +68,10 @@ void NANDFlashAnalyzerResults::GenerateExportFile(const char *file, DisplayBase 
 			break;
 		case Read:
 			file_stream << "Read";
+			break;
 		case Write:
 			file_stream << "Write";
+			break;
 		case Undefined:
 		default:
 			file_stream << "Undef";
