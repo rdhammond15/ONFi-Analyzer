@@ -15,7 +15,9 @@ NANDFlashAnalyzer::NANDFlashAnalyzer()
 	  mCE(NULL),
 	  mReadEnable(NULL),
 	  mWriteEnable(NULL),
-	  mData()
+	  mData(),
+      mMoreReadTransitions(true),
+      mMoreWriteTransitions(true)
 {
 	SetAnalyzerSettings(mSettings.get());
     UseFrameV2();
@@ -44,8 +46,6 @@ void NANDFlashAnalyzer::SetupResults()
 void NANDFlashAnalyzer::WorkerThread()
 {
 	Setup();
-
-	AdvanceToReadOrWriteEnableEdge();
 
 	for (;;)
 	{
@@ -81,14 +81,18 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	U64 next_sample = 0;
 
     /* getting the next edge seems to block if there isn't another edge available */
-    bool more_read_transitions = mReadEnable->DoMoreTransitionsExistInCurrentData();
-    bool more_write_transitions = mWriteEnable->DoMoreTransitionsExistInCurrentData();
+    if (mMoreReadTransitions) {
+        mMoreReadTransitions = mReadEnable->DoMoreTransitionsExistInCurrentData();
+    }
+    if (mMoreWriteTransitions) {
+        mMoreWriteTransitions = mWriteEnable->DoMoreTransitionsExistInCurrentData();
+    }
 
     /* we should allow the block to happen if there is currently no more data available */
-    bool need_more_data = !more_read_transitions && !more_write_transitions;
+    bool need_more_data = !mMoreReadTransitions && !mMoreWriteTransitions;
 	if (mReadEnable != NULL)
 	{
-        if (more_read_transitions || need_more_data) {
+        if (mMoreReadTransitions || need_more_data) {
 		    next_read_enable_sample = mReadEnable->GetSampleOfNextEdge();
         }
 	}
@@ -96,14 +100,14 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 	if (mWriteEnable != NULL)
 	{
         /* getting the next edge seems to block if there isn't another edge available */
-        if (more_write_transitions) {
+        if (mMoreWriteTransitions) {
 		    next_write_enable_sample = mWriteEnable->GetSampleOfNextEdge();
         }
 	}
 
 	/* Samples are time based so lowest value is next sample and make sure there is another sample available */
-	if ((next_read_enable_sample <= next_write_enable_sample && more_read_transitions) ||
-        (more_read_transitions && !more_write_transitions))
+	if ((next_read_enable_sample <= next_write_enable_sample && mMoreReadTransitions) ||
+        (mMoreReadTransitions && !mMoreWriteTransitions))
 	{
 		AdvanceToReadEnableHighEdge(); // Reads happen on the falling edge of the ReadEnable line
 
@@ -115,7 +119,7 @@ void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
 
 		mDataIsOutput = true;
 	}
-	else if(more_write_transitions)
+	else if(mMoreWriteTransitions)
 	{
 		AdvanceToWriteEnableHighEdge(); // Writes happen on the rising edge of the WriteEnable line
 		next_sample = mWriteEnable->GetSampleNumber();

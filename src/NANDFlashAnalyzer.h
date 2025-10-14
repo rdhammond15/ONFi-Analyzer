@@ -54,6 +54,8 @@ protected: //vars
 	NANDFlashSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
 
+    bool mMoreWriteTransitions;
+    bool mMoreReadTransitions;
 	bool mDataIsOutput;
 	U8 mLastCommand;
 
