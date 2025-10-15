@@ -13,47 +13,48 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	  mWriteEnableChannel(UNDEFINED_CHANNEL),
 	  mReadEnableChannel(UNDEFINED_CHANNEL),
 	  mCLEChannel(UNDEFINED_CHANNEL),
-	  mALEChannel(UNDEFINED_CHANNEL)
+	  mALEChannel(UNDEFINED_CHANNEL),
+      mUsingIOChannels(true)
 {
 	mIO0Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO0Interface->SetTitleAndTooltip("IO 0", "I/O Channel 0");
 	mIO0Interface->SetChannel(mIO0Channel);
-	mIO0Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO0Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO1Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO1Interface->SetTitleAndTooltip("IO 1", "I/O Channel 1");
 	mIO1Interface->SetChannel(mIO1Channel);
-	mIO1Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO1Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO2Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO2Interface->SetTitleAndTooltip("IO 2", "I/O Channel 2");
 	mIO2Interface->SetChannel(mIO2Channel);
-	mIO2Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO2Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO3Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO3Interface->SetTitleAndTooltip("IO 3", "I/O Channel 3");
 	mIO3Interface->SetChannel(mIO3Channel);
-	mIO3Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO3Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO4Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO4Interface->SetTitleAndTooltip("IO 4", "I/O Channel 4");
 	mIO4Interface->SetChannel(mIO4Channel);
-	mIO4Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO4Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO5Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO5Interface->SetTitleAndTooltip("IO 5", "I/O Channel 5");
 	mIO5Interface->SetChannel(mIO5Channel);
-	mIO5Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO5Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO6Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO6Interface->SetTitleAndTooltip("IO 6", "I/O Channel 6");
 	mIO6Interface->SetChannel(mIO6Channel);
-	mIO6Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO6Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mIO7Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO7Interface->SetTitleAndTooltip("IO 7", "I/O Channel 7");
 	mIO7Interface->SetChannel(mIO7Channel);
-	mIO7Interface->SetSelectionOfNoneIsAllowed(false);
+	mIO7Interface->SetSelectionOfNoneIsAllowed(true);
 
 	mWriteEnableInterface.reset(new AnalyzerSettingInterfaceChannel());
 	mWriteEnableInterface->SetTitleAndTooltip("WriteEnable", "Write Enable line (WE#)");
@@ -156,7 +157,19 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 		return false;
 	}
 
-	if ((io0 == UNDEFINED_CHANNEL) || (io1 == UNDEFINED_CHANNEL) || (io1 == UNDEFINED_CHANNEL) || (io2 == UNDEFINED_CHANNEL) || (io3 == UNDEFINED_CHANNEL) || (io4 == UNDEFINED_CHANNEL) || (io5 == UNDEFINED_CHANNEL) || (io6 == UNDEFINED_CHANNEL) || (io7 == UNDEFINED_CHANNEL) || (write_enable == UNDEFINED_CHANNEL) || (read_enable == UNDEFINED_CHANNEL) || (cle == UNDEFINED_CHANNEL) || (ale == UNDEFINED_CHANNEL))
+    if ((io0 == UNDEFINED_CHANNEL) ||
+        (io1 == UNDEFINED_CHANNEL) ||
+        (io2 == UNDEFINED_CHANNEL) ||
+        (io3 == UNDEFINED_CHANNEL) ||
+        (io4 == UNDEFINED_CHANNEL) ||
+        (io5 == UNDEFINED_CHANNEL) ||
+        (io6 == UNDEFINED_CHANNEL) ||
+        (io7 == UNDEFINED_CHANNEL)) {
+
+        mUsingIOChannels = false;
+    }
+
+    if ((write_enable == UNDEFINED_CHANNEL) || (read_enable == UNDEFINED_CHANNEL) || (cle == UNDEFINED_CHANNEL) || (ale == UNDEFINED_CHANNEL))
 	{
 		SetErrorText("Please select an input for all I/O lines, Read Enable, Write Enable, and CLE.");
 		return false;

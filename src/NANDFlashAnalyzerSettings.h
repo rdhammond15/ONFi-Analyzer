@@ -20,6 +20,7 @@ public:
 	virtual void LoadSettings( const char* settings );
 	virtual const char* SaveSettings();
 
+    bool mUsingIOChannels;
 	Channel mIO0Channel;
 	Channel mIO1Channel;
 	Channel mIO2Channel;

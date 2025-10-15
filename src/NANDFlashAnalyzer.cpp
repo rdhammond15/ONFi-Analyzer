@@ -63,14 +63,17 @@ void NANDFlashAnalyzer::Setup(void)
 	mCE = GetAnalyzerChannelData(mSettings->mCEChannel);
 	mReadEnable = GetAnalyzerChannelData(mSettings->mReadEnableChannel);
 	mWriteEnable = GetAnalyzerChannelData(mSettings->mWriteEnableChannel);
-	mData[0] = GetAnalyzerChannelData(mSettings->mIO0Channel);
-	mData[1] = GetAnalyzerChannelData(mSettings->mIO1Channel);
-	mData[2] = GetAnalyzerChannelData(mSettings->mIO2Channel);
-	mData[3] = GetAnalyzerChannelData(mSettings->mIO3Channel);
-	mData[4] = GetAnalyzerChannelData(mSettings->mIO4Channel);
-	mData[5] = GetAnalyzerChannelData(mSettings->mIO5Channel);
-	mData[6] = GetAnalyzerChannelData(mSettings->mIO6Channel);
-	mData[7] = GetAnalyzerChannelData(mSettings->mIO7Channel);
+
+    if (mSettings->mUsingIOChannels) {
+        mData[0] = GetAnalyzerChannelData(mSettings->mIO0Channel);
+        mData[1] = GetAnalyzerChannelData(mSettings->mIO1Channel);
+        mData[2] = GetAnalyzerChannelData(mSettings->mIO2Channel);
+        mData[3] = GetAnalyzerChannelData(mSettings->mIO3Channel);
+        mData[4] = GetAnalyzerChannelData(mSettings->mIO4Channel);
+        mData[5] = GetAnalyzerChannelData(mSettings->mIO5Channel);
+        mData[6] = GetAnalyzerChannelData(mSettings->mIO6Channel);
+        mData[7] = GetAnalyzerChannelData(mSettings->mIO7Channel);
+    }
 }
 
 void NANDFlashAnalyzer::AdvanceToReadOrWriteEnableEdge(void)
@@ -194,14 +197,16 @@ void NANDFlashAnalyzer::SynchronizeAllChannels(U64 sample_number)
 	mReadEnable->AdvanceToAbsPosition(sample_number);
 	mWriteEnable->AdvanceToAbsPosition(sample_number);
 
-	mData[0]->AdvanceToAbsPosition(sample_number);
-	mData[1]->AdvanceToAbsPosition(sample_number);
-	mData[2]->AdvanceToAbsPosition(sample_number);
-	mData[3]->AdvanceToAbsPosition(sample_number);
-	mData[4]->AdvanceToAbsPosition(sample_number);
-	mData[5]->AdvanceToAbsPosition(sample_number);
-	mData[6]->AdvanceToAbsPosition(sample_number);
-	mData[7]->AdvanceToAbsPosition(sample_number);
+    if (mSettings->mUsingIOChannels) {
+        mData[0]->AdvanceToAbsPosition(sample_number);
+        mData[1]->AdvanceToAbsPosition(sample_number);
+        mData[2]->AdvanceToAbsPosition(sample_number);
+        mData[3]->AdvanceToAbsPosition(sample_number);
+        mData[4]->AdvanceToAbsPosition(sample_number);
+        mData[5]->AdvanceToAbsPosition(sample_number);
+        mData[6]->AdvanceToAbsPosition(sample_number);
+        mData[7]->AdvanceToAbsPosition(sample_number);
+    }
 }
 
 void NANDFlashAnalyzer::GetByte(void)
@@ -216,13 +221,17 @@ void NANDFlashAnalyzer::GetByte(void)
     }
 
 	/* Get the data */
-	for (U32 i = 0; i < 8; i++)
-	{
-		if (mData[i]->GetBitState() == BIT_HIGH)
-		{
-			data |= (1 << i);
-		}
-	}
+    if (mSettings->mUsingIOChannels) {
+        for (U32 i = 0; i < 8; i++)
+        {
+            if (mData[i]->GetBitState() == BIT_HIGH)
+            {
+                data |= (1 << i);
+            }
+        }
+    } else {
+        data = 0;
+    }
 
 	Frame frame;
     FrameV2 frame_v2;
@@ -287,14 +296,16 @@ void NANDFlashAnalyzer::GetByte(void)
 		{
 			// Write operation
 			frame.mType = Write;
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO0Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO1Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO2Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO3Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO4Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO5Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO6Channel);
-			mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO7Channel);
+            if (mSettings->mUsingIOChannels) {
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO0Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO1Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO2Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO3Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO4Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO5Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO6Channel);
+                mResults->AddMarker(starting_sample, AnalyzerResults::Dot, mSettings->mIO7Channel);
+            }
 		}
 	}
 
