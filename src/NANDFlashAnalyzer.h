@@ -57,6 +57,7 @@ protected: //vars
     bool mMoreWriteTransitions;
     bool mMoreReadTransitions;
 	bool mDataIsOutput;
+	U32 mSampleRate;
 	U8 mLastCommand;
 
 #pragma warning( pop )
