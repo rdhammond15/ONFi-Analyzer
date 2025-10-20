@@ -157,11 +157,11 @@ void NANDFlashAnalyzer::AdvanceToReadEnableHighEdge(void)
 		U64 current_sample = mReadEnable->GetSampleNumber();
 		mWriteEnable->AdvanceToAbsPosition(current_sample);
 
-		if (mWriteEnable->GetBitState() == BIT_HIGH)
-		{
-			mResults->AddMarker(mReadEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mReadEnableChannel);
-			mResults->CommitResults();
-		}
+		// if (mWriteEnable->GetBitState() == BIT_HIGH)
+		// {
+		// 	mResults->AddMarker(mReadEnable->GetSampleNumber(), AnalyzerResults::UpArrow, mSettings->mReadEnableChannel);
+		// 	mResults->CommitResults();
+		// }
 	}
 }
 
@@ -220,22 +220,8 @@ void NANDFlashAnalyzer::GetByte(void)
         return;
     }
 
-	/* Get the data */
-    if (mSettings->mUsingIOChannels) {
-        for (U32 i = 0; i < 8; i++)
-        {
-            if (mData[i]->GetBitState() == BIT_HIGH)
-            {
-                data |= (1 << i);
-            }
-        }
-    } else {
-        data = 0;
-    }
-
 	Frame frame;
     FrameV2 frame_v2;
-	frame.mData1 = data;
     std::unordered_map<int, const char*> type_to_str = {
         {Read, "Read"},
         {Write, "Write"},
@@ -256,14 +242,50 @@ void NANDFlashAnalyzer::GetByte(void)
 			return;
 		}
 
+		// Get the data - 1 for any reads to account for RE rising edge
+		if (mSettings->mUsingIOChannels)
+		{
+			for (U32 i = 0; i < 8; i++)
+			{
+				// Get previous sample of rising edge just for sanity's sake
+				mData[i]->AdvanceToAbsPosition(mData[i]->GetSampleNumber() - 1);
+				if (mData[i]->GetBitState() == BIT_HIGH)
+				{
+					data |= (1 << i);
+				}
+				mData[i]->AdvanceToAbsPosition(mData[i]->GetSampleNumber() + 1);
+			}
+		}
+		else
+		{
+			data = 0;
+		}
+		
 		U64 starting_sample = mReadEnable->GetSampleNumber();
-		frame.mStartingSampleInclusive = starting_sample;
-		frame.mEndingSampleInclusive = starting_sample + 1; // falling edge so place the bubble after
+		frame.mStartingSampleInclusive = starting_sample - 1;
+		frame.mEndingSampleInclusive = starting_sample; // falling edge so place the bubble after
+		mResults->AddMarker(starting_sample - 1, AnalyzerResults::Dot, mSettings->mReadEnableChannel);
 		frame.mType = Read;
 		frame.mFlags = 0;
 	}
 	else if (!mDataIsOutput)
 	{
+		/* Get the data */
+		if (mSettings->mUsingIOChannels)
+		{
+			for (U32 i = 0; i < 8; i++)
+			{
+				if (mData[i]->GetBitState() == BIT_HIGH)
+				{
+					data |= (1 << i);
+				}
+			}
+		}
+		else
+		{
+			data = 0;
+		}
+
 		// Input
 		U64 starting_sample = mWriteEnable->GetSampleNumber();
 		frame.mStartingSampleInclusive = starting_sample - 1;
@@ -309,6 +331,7 @@ void NANDFlashAnalyzer::GetByte(void)
 		}
 	}
 
+	frame.mData1 = data;
     frame_v2.AddInteger("Data", data);
     mResults->AddFrameV2(frame_v2, type_to_str[frame.mType], frame.mStartingSampleInclusive,
                          frame.mEndingSampleInclusive);
