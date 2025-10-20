@@ -14,7 +14,7 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	  mReadEnableChannel(UNDEFINED_CHANNEL),
 	  mCLEChannel(UNDEFINED_CHANNEL),
 	  mALEChannel(UNDEFINED_CHANNEL),
-      mUsingIOChannels(true)
+	  mUsingIOChannels(true)
 {
 	mIO0Interface.reset(new AnalyzerSettingInterfaceChannel());
 	mIO0Interface->SetTitleAndTooltip("IO 0", "I/O Channel 0");
@@ -157,19 +157,20 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 		return false;
 	}
 
-    if ((io0 == UNDEFINED_CHANNEL) ||
-        (io1 == UNDEFINED_CHANNEL) ||
-        (io2 == UNDEFINED_CHANNEL) ||
-        (io3 == UNDEFINED_CHANNEL) ||
-        (io4 == UNDEFINED_CHANNEL) ||
-        (io5 == UNDEFINED_CHANNEL) ||
-        (io6 == UNDEFINED_CHANNEL) ||
-        (io7 == UNDEFINED_CHANNEL)) {
+	if ((io0 == UNDEFINED_CHANNEL) ||
+		(io1 == UNDEFINED_CHANNEL) ||
+		(io2 == UNDEFINED_CHANNEL) ||
+		(io3 == UNDEFINED_CHANNEL) ||
+		(io4 == UNDEFINED_CHANNEL) ||
+		(io5 == UNDEFINED_CHANNEL) ||
+		(io6 == UNDEFINED_CHANNEL) ||
+		(io7 == UNDEFINED_CHANNEL))
+	{
 
-        mUsingIOChannels = false;
-    }
+		mUsingIOChannels = false;
+	}
 
-    if ((write_enable == UNDEFINED_CHANNEL) || (read_enable == UNDEFINED_CHANNEL) || (cle == UNDEFINED_CHANNEL) || (ale == UNDEFINED_CHANNEL))
+	if ((write_enable == UNDEFINED_CHANNEL) || (read_enable == UNDEFINED_CHANNEL) || (cle == UNDEFINED_CHANNEL) || (ale == UNDEFINED_CHANNEL))
 	{
 		SetErrorText("Please select an input for all I/O lines, Read Enable, Write Enable, and CLE.");
 		return false;

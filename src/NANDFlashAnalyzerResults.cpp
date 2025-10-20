@@ -24,23 +24,24 @@ void NANDFlashAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel &chan
 	char number_str[128];
 	AnalyzerHelpers::GetNumberString(frame.mData1, display_base, 8, number_str, 128);
 
-	switch(frame.mType) {
-		case Command:
-			AddResultString("CMD: ", number_str);
-			break;
-		case Address:
-			AddResultString("ADDR: ", number_str);
-			break;
-		case Read:
-			AddResultString("RD: ", number_str);
-			break;
-		case Write:
-			AddResultString("WR: ", number_str);
-			break;
-		case Undefined:
-		default:
-			AddResultString("UNDEF: ", number_str);
-			break;
+	switch (frame.mType)
+	{
+	case Command:
+		AddResultString("CMD: ", number_str);
+		break;
+	case Address:
+		AddResultString("ADDR: ", number_str);
+		break;
+	case Read:
+		AddResultString("RD: ", number_str);
+		break;
+	case Write:
+		AddResultString("WR: ", number_str);
+		break;
+	case Undefined:
+	default:
+		AddResultString("UNDEF: ", number_str);
+		break;
 	}
 }
 
