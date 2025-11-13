@@ -60,9 +60,12 @@ void NANDFlashAnalyzer::Setup(void)
 {
 	mCLE = GetAnalyzerChannelData(mSettings->mCLEChannel);
 	mALE = GetAnalyzerChannelData(mSettings->mALEChannel);
-	mCE = GetAnalyzerChannelData(mSettings->mCEChannel);
 	mReadEnable = GetAnalyzerChannelData(mSettings->mReadEnableChannel);
 	mWriteEnable = GetAnalyzerChannelData(mSettings->mWriteEnableChannel);
+
+    if (mSettings->mCEChannel != UNDEFINED_CHANNEL) {
+	    mCE = GetAnalyzerChannelData(mSettings->mCEChannel);
+    }
 
     if (mSettings->mUsingIOChannels) {
         mData[0] = GetAnalyzerChannelData(mSettings->mIO0Channel);
@@ -193,9 +196,11 @@ void NANDFlashAnalyzer::SynchronizeAllChannels(U64 sample_number)
 {
 	mCLE->AdvanceToAbsPosition(sample_number);
 	mALE->AdvanceToAbsPosition(sample_number);
-	mCE->AdvanceToAbsPosition(sample_number);
 	mReadEnable->AdvanceToAbsPosition(sample_number);
 	mWriteEnable->AdvanceToAbsPosition(sample_number);
+    if (mCE != NULL) {
+	    mCE->AdvanceToAbsPosition(sample_number);
+    }
 
     if (mSettings->mUsingIOChannels) {
         mData[0]->AdvanceToAbsPosition(sample_number);
@@ -216,7 +221,7 @@ void NANDFlashAnalyzer::GetByte(void)
 	AdvanceToReadOrWriteEnableEdge();
 
 	// Ignore anything where CE_N is high
-	if (mCE->GetBitState() == BIT_HIGH) {
+	if (mCE != NULL && mCE->GetBitState() == BIT_HIGH) {
         return;
     }
 

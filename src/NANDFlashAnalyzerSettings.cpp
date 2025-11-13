@@ -79,7 +79,7 @@ NANDFlashAnalyzerSettings::NANDFlashAnalyzerSettings()
 	mCEInterface.reset(new AnalyzerSettingInterfaceChannel());
 	mCEInterface->SetTitleAndTooltip("CE", "Chip Enable");
 	mCEInterface->SetChannel(mCEChannel);
-	mCEInterface->SetSelectionOfNoneIsAllowed(false);
+	mCEInterface->SetSelectionOfNoneIsAllowed(true);
 
 	AddInterface(mIO0Interface.get());
 	AddInterface(mIO1Interface.get());
@@ -171,7 +171,7 @@ bool NANDFlashAnalyzerSettings::SetSettingsFromInterfaces()
 
     if ((write_enable == UNDEFINED_CHANNEL) || (read_enable == UNDEFINED_CHANNEL) || (cle == UNDEFINED_CHANNEL) || (ale == UNDEFINED_CHANNEL))
 	{
-		SetErrorText("Please select an input for all I/O lines, Read Enable, Write Enable, and CLE.");
+		SetErrorText("Please select an input for Read Enable, Write Enable, and CLE.");
 		return false;
 	}
 
