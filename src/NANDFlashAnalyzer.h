@@ -6,7 +6,8 @@
 #include "NANDFlashSimulationDataGenerator.h"
 
 // Frame Types
-enum OnfiFrameType {
+enum OnfiFrameType
+{
 	Command,
 	Address,
 	Write,
@@ -24,13 +25,13 @@ public:
 	virtual void SetupResults();
 	virtual void WorkerThread();
 
-	virtual U32 GenerateSimulationData( U64 newest_sample_requested, U32 sample_rate, SimulationChannelDescriptor** simulation_channels );
+	virtual U32 GenerateSimulationData(U64 newest_sample_requested, U32 sample_rate, SimulationChannelDescriptor **simulation_channels);
 	virtual U32 GetMinimumSampleRateHz();
 
-	virtual const char* GetAnalyzerName() const;
+	virtual const char *GetAnalyzerName() const;
 	virtual bool NeedsRerun();
 
-protected:	// Functions
+protected: // Functions
 	void Setup(void);
 	void AdvanceToReadOrWriteEnableEdge(void);
 	void AdvanceToReadEnableHighEdge(void);
@@ -38,11 +39,11 @@ protected:	// Functions
 	void SynchronizeAllChannels(U64 sample_number);
 	void GetByte(void);
 
-protected: //vars
-#pragma warning( push )
-#pragma warning( disable : 4251 ) //warning C4251: 'SerialAnalyzer::<...>' : class <...> needs to have dll-interface to be used by clients of class
-	std::unique_ptr< NANDFlashAnalyzerSettings > mSettings;
-	std::unique_ptr< NANDFlashAnalyzerResults > mResults;
+protected: // vars
+#pragma warning(push)
+#pragma warning(disable : 4251) // warning C4251: 'SerialAnalyzer::<...>' : class <...> needs to have dll-interface to be used by clients of class
+	std::unique_ptr<NANDFlashAnalyzerSettings> mSettings;
+	std::unique_ptr<NANDFlashAnalyzerResults> mResults;
 
 	AnalyzerChannelData *mCLE;
 	AnalyzerChannelData *mALE;
@@ -54,16 +55,16 @@ protected: //vars
 	NANDFlashSimulationDataGenerator mSimulationDataGenerator;
 	bool mSimulationInitilized;
 
-    bool mMoreWriteTransitions;
-    bool mMoreReadTransitions;
+	bool mMoreWriteTransitions;
+	bool mMoreReadTransitions;
 	bool mDataIsOutput;
 	U8 mLastCommand;
 
-#pragma warning( pop )
+#pragma warning(pop)
 };
 
-extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();
-extern "C" ANALYZER_EXPORT Analyzer* __cdecl CreateAnalyzer( );
-extern "C" ANALYZER_EXPORT void __cdecl DestroyAnalyzer( Analyzer* analyzer );
+extern "C" ANALYZER_EXPORT const char *__cdecl GetAnalyzerName();
+extern "C" ANALYZER_EXPORT Analyzer *__cdecl CreateAnalyzer();
+extern "C" ANALYZER_EXPORT void __cdecl DestroyAnalyzer(Analyzer *analyzer);
 
-#endif //NANDFLASH_ANALYZER_H
+#endif // NANDFLASH_ANALYZER_H
